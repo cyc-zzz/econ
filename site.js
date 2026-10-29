@@ -18,9 +18,10 @@ const SETTINGS={
   frameGap:12,            // px between the photo and its frame
   density:.55,            // background dots per screen area (1 = medium)
   reach:100,              // px; dots closer than this are joined by a line
-  speed:7,                // px per second
+  speed:10,               // cruising speed of the background dots, px per second
+  pull:.5,                // gravity between dots: paths bend as dots pass each other (0 = none)
+  lifespan:90,            // seconds a background dot lives (60-140% of this) before it fades and a new one appears
   strength:.6,            // visibility of the network, 0 to 1.5
-  lights:true,            // now and then a small light travels along a line
   clickDots:40,           // most clicked dots on screen at once, fading ones included
   clickDotLife:20,        // seconds before a clicked dot fades out
   quietInside:.05,        // network strength over text (0 = hidden)
@@ -32,18 +33,18 @@ const SETTINGS={
 (()=>{
 const S=SETTINGS,$=q=>document.querySelector(q),R=document.documentElement.style;
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),mixc=(a,b,s)=>[0,1,2].map(i=>Math.round(a[i]+(b[i]-a[i])*s)),
-  sm=f=>f<=0?0:f>=1?1:f*f*f*(f*(6*f-15)+10);   // one fade curve for every line, dot and quiet zone
+  sm=f=>f<=0?0:f>=1?1:f*f*f*(f*(6*f-15)+10);   // one fade curve for every line, dot, force and quiet zone
+// when the visitor's system asks for less motion, the page skips its fade-in and draw-in; the network keeps its slow drift
 const C1=rgb(S.colour1),C2=rgb(S.colour2),RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-// one motion law: UI parts follow a critically damped spring (rate W_UI, settles in DUR, no overshoot), and the CSS transitions use the
-// same curve; the background runs the same law three times slower. Dots relax at rate G toward their own slowly turning drift.
-const W_UI=11,W_BG=W_UI/3,DUR=.6,G=1.8,PSPD=80,BIRTH=1000,FADE=2500;
+// motion: page elements follow a critically damped spring (rate W_UI, settles in DUR, no overshoot) and the CSS transitions use the
+// same curve; the mouse lines fade with the same spring three times slower
+const W_UI=11,W_BG=W_UI/3,DUR=.6,BIRTH=1000,FADE=2500,GRAV=5000,RANGE=220,SOFT=900,GOV=.8,EDGE=60,WALL=30,MOUSE=170;
 function spring(o,target,w,dt){o.v+=(w*w*(target-o.x)-2*w*o.v)*dt;o.x+=o.v*dt}
 [['--a1',S.colour1],['--a2',S.colour2],['--bg',S.background],['--ink',S.ink],['--ts',S.titleSize+'px'],['--tg',S.titleGap+'px'],['--bs',S.textSize+'px'],
  ['--bw',S.textWeight],['--lh',S.lineSpacing],['--pg',S.gap*S.textSize+'px'],['--h2s',S.headingSize+'px'],['--pr',S.photoCorners+'px'],['--ds',S.dotSize+'px'],
  ['--fg',S.frameGap+'px'],['--dur',DUR+'s']].forEach(([p,v])=>R.setProperty(p,v));
-let EASE='ease';
 if(CSS.supports('transition-timing-function','linear(0, 1)')){const u1=W_UI*DUR,e=u=>1-(1+u)*Math.exp(-u),z=e(u1);
-  EASE='linear('+Array.from({length:25},(_,i)=>(e(u1*i/24)/z).toFixed(4)).join(',')+')';R.setProperty('--ease',EASE)}
+  R.setProperty('--ease','linear('+Array.from({length:25},(_,i)=>(e(u1*i/24)/z).toFixed(4)).join(',')+')')}
 
 // page content: # title, ## heading, empty line = paragraph, [text](link), link-only lines = link list, ![photo](file), footer: text
 function md(src){let title='',photo=null,foot='',cur=[];const B=[],flush=()=>{if(cur.length){B.push(cur);cur=[]}};
@@ -60,7 +61,7 @@ function md(src){let title='',photo=null,foot='',cur=[];const B=[],flush=()=>{if
     lk=x=>esc(x).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,t,u)=>`<a href="${u}"${/^https?:/.test(u)?' target="_blank" rel="noopener"':''}>${t}</a>`);
   return{title,photo,foot:lk(foot),html:B.map(b=>b.h!==undefined?`<h2>${esc(b.h)}</h2>`:b.every(x=>only.test(x))?`<p class="links">${b.map(lk).join('')}</p>`:`<p>${lk(b.join(' '))}</p>`).join('')}}
 
-let tm,pw,pm,cv,ctx,P=[],PU=[],TR=[],MX=-999,MY=-999,IN=0,mp=0,nextPulse=0,last=0,introT;
+let VW=1,VH=1,N=0,tm,pw,pm,cv,ctx,P=[],TR=[],MX=-999,MY=-999,IN=0,mp=0,last=0,introT;
 const FXS={x:0,v:0},FYS={x:0,v:0},MPS={x:0,v:0};
 
 // marks: title mark (dot, line, dot, line, dot) and photo frame (4 corner dots), drawn as SVG; each dot takes the gradient colour at its position
@@ -79,8 +80,8 @@ function marks(intro){const w=96;
 const hover=(box,on)=>{const s=box&&box.querySelector('svg');if(s)s.classList.toggle('hov',on)};
 
 // menu: the dot sits under the current page; a click slides it to the next page while this one fades out
-function navDot(a){const d=$('#navdot');d.style.left=a.offsetLeft+a.offsetWidth/2+'px'}
-function menu(){const cur=document.body.dataset.page,on=document.querySelector(`nav a[data-p="${cur}"]`);
+function navDot(a){$('#navdot').style.left=a.offsetLeft+a.offsetWidth/2+'px'}
+function menu(){const on=document.querySelector(`nav a[data-p="${document.body.dataset.page}"]`);
   if(on){on.classList.add('on');navDot(on);requestAnimationFrame(()=>$('#navdot').classList.add('ready'))}
   document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',e=>{if(a===on||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();
     document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x===a));navDot(a);document.body.classList.add('leaving');
@@ -94,41 +95,45 @@ function calmAt(x,y){if(!TR.length)return 1;let d=1e12;
   for(const r of TR){const dx=Math.max(r.left-x,0,x-r.right),dy=Math.max(r.top-y,0,y-r.bottom),dd=dx*dx+dy*dy;if(dd<d){d=dd;if(!d)break}}
   const g=S.gap*S.textSize,s=(Math.sqrt(d)-S.quietMargin*g)/(S.quietFade*g);return S.quietInside+(1-S.quietInside)*sm(s)}
 
-// background network
-const nodeCol=x=>mixc(C1,C2,Math.min(1,Math.max(0,x/innerWidth)));
-function node(x,y,o={}){const th=Math.random()*6.28;return{x,y,th,om:0,vx:S.speed*Math.cos(th),vy:S.speed*Math.sin(th),born:0,die:0,lf:1,...o}}
-function initNet(){P=[];PU=[];const n=Math.min(170,Math.round(innerWidth*innerHeight/16000*S.density));for(let i=0;i<n;i++)P.push(node(Math.random()*innerWidth,Math.random()*innerHeight))}
+// background network. Each dot fades in, lives about lifespan seconds, fades out, and a new one fades in elsewhere.
+// Dots cruise at a set speed in their own direction; each pair within RANGE pulls along a softened inverse square, which bends
+// their paths as they pass (they never stick: a governor restores cruising speed but leaves the direction free); a soft push near
+// the edges turns them back inside.
+const nodeCol=x=>mixc(C1,C2,Math.min(1,Math.max(0,x/VW)));
+function node(x,y,t,o={}){const th=Math.random()*6.28;return{x,y,vx:S.speed*Math.cos(th),vy:S.speed*Math.sin(th),ax:0,ay:0,born:0,die:0,lf:1,click:0,
+  end:t+S.lifespan*1000*(.6+.8*Math.random()),...o}}
+function initNet(){const t=performance.now();P=[];N=Math.min(170,Math.round(VW*VH/16000*S.density));
+  for(let i=0;i<N;i++){const p=node(Math.random()*VW,Math.random()*VH,t);p.end=t+(p.end-t)*Math.random();P.push(p)}}  // staggered first lives
 function life(p,t){let a=1;if(p.born)a=sm((t-p.born)/BIRTH);if(p.die)a*=1-sm((t-p.die)/FADE);return a}
-function hop(a){const c=P.filter(q=>q!==a&&q.lf>.5&&Math.hypot(q.x-a.x,q.y-a.y)<S.reach);return c.length?c[Math.random()*c.length|0]:null}
-function step(t,dt){const w=innerWidth,h=innerHeight,sp=RM?0:S.speed,M=60;
-  for(const p of P){let ax=0,ay=0;
-    if(p.born&&!p.die&&t-p.born>S.clickDotLife*1000)p.die=t;
-    // heading turns slowly at random; near an edge it turns back inward and a soft force keeps the dot on screen (no bounce)
-    p.om=(p.om+(Math.random()-.5)*dt*3.6)*Math.exp(-dt*.6);p.th+=p.om*dt;
-    const nx=(p.x<M?sm(1-p.x/M):0)-(p.x>w-M?sm(1-(w-p.x)/M):0),ny=(p.y<M?sm(1-p.y/M):0)-(p.y>h-M?sm(1-(h-p.y)/M):0);
-    if(nx||ny){if(Math.cos(p.th)*nx+Math.sin(p.th)*ny<0){const df=Math.atan2(ny,nx)-p.th;p.th+=Math.atan2(Math.sin(df),Math.cos(df))*Math.min(1,dt*1.5*Math.hypot(nx,ny))}ax+=nx*30;ay+=ny*30}
-    ax+=G*(sp*Math.cos(p.th)-p.vx);ay+=G*(sp*Math.sin(p.th)-p.vy);
-    p.vx+=ax*dt;p.vy+=ay*dt;p.x=Math.min(w,Math.max(0,p.x+p.vx*dt));p.y=Math.min(h,Math.max(0,p.y+p.vy*dt))}
-  P=P.filter(p=>!p.die||t-p.die<FADE)}
-function draw(t){const k=S.strength;ctx.clearRect(0,0,innerWidth,innerHeight);if(!P.length)return;textRects();
+function step(t,dt){
+  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy;if(d2>RANGE*RANGE)continue;
+    const q=d2+SOFT,f=GRAV*S.pull*Math.min(a.lf,b.lf)*sm(1-Math.sqrt(d2)/RANGE)/(q*Math.sqrt(q));a.ax+=dx*f;a.ay+=dy*f;b.ax-=dx*f;b.ay-=dy*f}
+  for(const p of P){let ax=p.ax,ay=p.ay;p.ax=p.ay=0;
+    if(!p.die&&t>p.end)p.die=t;
+    if(p.click&&t-p.born<BIRTH)continue;   // a clicked dot stays exactly where it was clicked while it fades in
+    const nx=(p.x<EDGE?sm(1-p.x/EDGE):0)-(p.x>VW-EDGE?sm(1-(VW-p.x)/EDGE):0),ny=(p.y<EDGE?sm(1-p.y/EDGE):0)-(p.y>VH-EDGE?sm(1-(VH-p.y)/EDGE):0);
+    ax+=nx*WALL;ay+=ny*WALL;
+    const v=Math.hypot(p.vx,p.vy);
+    if(v<.01){const th=Math.random()*6.28;p.vx=.1*Math.cos(th);p.vy=.1*Math.sin(th)}else{const g=GOV*(S.speed-v)/v;ax+=g*p.vx;ay+=g*p.vy}
+    p.vx+=ax*dt;p.vy+=ay*dt;p.x=Math.min(VW,Math.max(0,p.x+p.vx*dt));p.y=Math.min(VH,Math.max(0,p.y+p.vy*dt))}
+  P=P.filter(p=>!p.die||t-p.die<FADE);
+  let alive=0;for(const p of P)if(!p.click&&!p.die)alive++;
+  for(;alive<N;alive++)P.push(node(Math.random()*VW,Math.random()*VH,t,{born:t,lf:0}))}
+function draw(t){const k=S.strength;ctx.clearRect(0,0,VW,VH);if(!P.length)return;textRects();
   P.forEach(p=>{p.col=nodeCol(p.x);p.lf=life(p,t)});ctx.lineWidth=.6;
   const ln=(a,b,al)=>{al*=Math.min(a.lf,b.lf)*calmAt((a.x+b.x)/2,(a.y+b.y)/2);if(al<.006)return;
     ctx.strokeStyle=`rgba(${mixc(a.col,b.col,.5)},${Math.min(1,al)})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()};
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<S.reach)ln(a,b,sm(1-d/S.reach)*.32*k)}
-  if(mp>.005)P.forEach(p=>{const d=Math.hypot(p.x-MX,p.y-MY);if(d<170)ln(p,{x:MX,y:MY,col:p.col,lf:1},sm(1-d/170)*.55*k*mp)});
-  P.forEach(p=>{const a=Math.min(1,.55*k*p.lf*calmAt(p.x,p.y));if(a<.006)return;ctx.fillStyle=`rgba(${p.col},${a})`;ctx.beginPath();ctx.arc(p.x,p.y,1.6*Math.sqrt(p.lf),0,7);ctx.fill()});
-  if(S.lights&&!RM){
-    if(t>nextPulse){nextPulse=t+1200+Math.random()*1200;const a=P[Math.random()*P.length|0],b=hop(a);if(b)PU.push({a,b,t0:t,dur:Math.max(350,Math.hypot(b.x-a.x,b.y-a.y)/PSPD*1000)})}
-    PU=PU.filter(u=>t-u.t0<u.dur);
-    PU.forEach(u=>{const s=Math.max(0,(t-u.t0)/u.dur),x=u.a.x+(u.b.x-u.a.x)*s,y=u.a.y+(u.b.y-u.a.y)*s,f=sm(s/.4)*sm((1-s)/.4);
-      ctx.fillStyle=`rgba(${mixc(u.a.col,u.b.col,s)},${Math.min(1,f*.9*k*Math.min(u.a.lf,u.b.lf)*calmAt(x,y))})`;ctx.beginPath();ctx.arc(x,y,2.3,0,7);ctx.fill()})}}
+  if(mp>.005)P.forEach(p=>{const d=Math.hypot(p.x-MX,p.y-MY);if(d<MOUSE)ln(p,{x:MX,y:MY,col:p.col,lf:1},sm(1-d/MOUSE)*.55*k*mp)});
+  P.forEach(p=>{const a=Math.min(1,.55*k*p.lf*calmAt(p.x,p.y));if(a<.006)return;ctx.fillStyle=`rgba(${p.col},${a})`;ctx.beginPath();ctx.arc(p.x,p.y,1.6*Math.sqrt(p.lf),0,7);ctx.fill()})}
 
-// UI springs: the marks drift a few px with the mouse; the mouse lines fade in and out with the mouse
-function ui(dt){const on=IN&&!RM;
-  spring(FXS,on?(MX/innerWidth-.5)*-6:0,W_UI,dt);spring(FYS,on?(MY/innerHeight-.5)*-6:0,W_UI,dt);
+// the marks drift a few px with the mouse; the mouse lines fade in and out with the mouse
+function ui(dt){spring(FXS,IN?(MX/VW-.5)*-6:0,W_UI,dt);spring(FYS,IN?(MY/VH-.5)*-6:0,W_UI,dt);
   R.setProperty('--fx',FXS.x.toFixed(2)+'px');R.setProperty('--fy',FYS.x.toFixed(2)+'px');spring(MPS,IN,W_BG,dt);mp=Math.min(1,Math.max(0,MPS.x))}
 function loop(t){const dt=last?Math.min(.05,(t-last)/1000):0;last=t;ui(dt);step(t,dt);draw(t);requestAnimationFrame(loop)}
-function size(){const d=devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;ctx.setTransform(d,0,0,d,0,0);initNet();marks(false);const on=$('nav a.on');if(on)navDot(on)}
+// the canvas box excludes a scrollbar, so all geometry uses the box size, not the window size
+function size(){const d=devicePixelRatio||1;VW=cv.clientWidth;VH=cv.clientHeight;cv.width=VW*d;cv.height=VH*d;ctx.setTransform(d,0,0,d,0,0);
+  initNet();marks(false);const on=$('nav a.on');if(on)navDot(on)}
 
 function start(){const c=md($('#content').textContent);
   $('#title').textContent=c.title;$('#foot').innerHTML=c.foot;
@@ -139,10 +144,10 @@ function start(){const c=md($('#content').textContent);
   $('.hd').addEventListener('pointerenter',()=>hover(tm,true));$('.hd').addEventListener('pointerleave',()=>hover(tm,false));
   addEventListener('pointermove',e=>{MX=e.clientX;MY=e.clientY;IN=1});
   document.addEventListener('mouseout',e=>{if(!e.relatedTarget)IN=0});
-  // a click adds a dot that starts at rest, joins the network, lives clickDotLife seconds and fades;
+  // a click adds a dot that joins the network, lives clickDotLife seconds and fades;
   // when clickDots are on screen (fading ones included), clicks wait until one has gone
-  addEventListener('pointerdown',e=>{if(e.target.closest('a'))return;const now=performance.now();
-    if(P.filter(p=>p.born).length>=S.clickDots)return;P.push(node(e.clientX,e.clientY,{born:now,lf:0,vx:0,vy:0}))});
+  addEventListener('pointerdown',e=>{if(e.target.closest('a'))return;const t=performance.now();
+    if(P.filter(p=>p.click).length<S.clickDots)P.push(node(e.clientX,e.clientY,t,{born:t,lf:0,click:1,vx:0,vy:0,end:t+S.clickDotLife*1000}))});
   let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(size,150)});
   menu();size();marks(!RM);document.fonts.ready.then(()=>{const on=$('nav a.on');if(on)navDot(on)});requestAnimationFrame(loop)}
 document.readyState==='loading'?addEventListener('DOMContentLoaded',start):start();
