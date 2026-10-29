@@ -1,8 +1,10 @@
 /* Yicheng Chen website: shared style for every page */
 *{box-sizing:border-box}
-:root{--font:'Comfortaa';--ease:cubic-bezier(.25,.1,.25,1);--dur:.6s}
+:root{--font:'Comfortaa';--ease:cubic-bezier(.25,.1,.25,1);--dur:.6s;
+  /* the same values as SETTINGS in site.js, used until site.js has run so the first paint already has the right colours */
+  --a1:#4d7c6b;--a2:#f06449;--bg:#fffaf3;--ink:#1f2328;--ts:58px;--tg:14px;--bs:16px;--bw:350;--lh:1.7;--pg:16px;--h2s:20px;--pr:2px;--ds:5px;--fg:12px}
 html,body{margin:0}
-body{min-height:100vh;display:flex;flex-direction:column;font-family:var(--font),sans-serif;font-weight:var(--bw);color:var(--ink);background:var(--bg);overflow-x:hidden;
+body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;font-family:var(--font),sans-serif;font-weight:var(--bw);color:var(--ink);background:var(--bg);overflow-x:hidden;
   --muted:color-mix(in srgb,var(--ink) 55%,var(--bg))}
 ::selection{background:color-mix(in srgb,var(--a1) 22%,transparent)}
 #net{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
@@ -13,8 +15,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:16px;pa
 nav{position:relative;display:flex;gap:26px}
 nav a{font-size:15px;color:var(--muted);text-decoration:none;transition:color var(--dur) var(--ease)}
 nav a.on,nav a:hover{color:var(--ink)}
-#navdot{position:absolute;left:0;bottom:-9px;width:var(--ds);height:var(--ds);margin-left:calc(var(--ds)/-2);border-radius:50%;background:var(--a1);opacity:0;transition:left var(--dur) var(--ease),opacity var(--dur)}
-#navdot.ready{opacity:1}
+#navdot{position:absolute;left:0;bottom:-9px;width:var(--ds);height:var(--ds);margin-left:calc(var(--ds)/-2);border-radius:50%;background:var(--a1);opacity:0;transition:opacity var(--dur)}
+#navdot.ready{opacity:1;transition:left var(--dur) var(--ease),opacity var(--dur)}   /* slides only after its first position is set */
 .wrap{flex:1 0 auto;width:100%;max-width:900px;margin:0 auto;padding:0 16px}
 .wrap,footer{animation:pagein var(--dur) var(--ease) both}
 @keyframes pagein{from{opacity:0;transform:translateY(6px)}}
@@ -37,7 +39,7 @@ main{display:flex;gap:48px;justify-content:center;align-items:flex-start;flex-wr
 .photo{position:absolute;inset:0;background:center/cover no-repeat;border-radius:var(--pr)}
 .pm{position:absolute;left:0;top:0}
 .pm .mk{position:absolute}
-/* one gap (--pg) between paragraphs, headings and links */
+/* one gap (--pg) between paragraphs and links and below headings; two gaps above a heading that follows other text */
 .text{max-width:440px;font-size:var(--bs);line-height:var(--lh)}
 .text p{margin:0 0 var(--pg)}
 .links{display:flex;flex-direction:column;align-items:flex-start;gap:var(--pg)}

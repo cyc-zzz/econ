@@ -33,7 +33,7 @@ Open the page's file on github.com, click the pencil (Edit), change only the blo
 | an empty line | new paragraph |
 | `[text](https://link)` | link; outside links open in a new tab |
 | lines holding only links | a list of links, one per line |
-| `![photo](photo.jpg)` | the photo |
+| `![Yicheng Chen](photo.jpg)` | the photo, with its description for screen readers |
 | `footer: © 2025 Yicheng Chen. All rights reserved.` | footer text |
 
 To replace the photo, upload a new `photo.jpg` (portrait, about 364 × 469 or larger at the same shape).
@@ -44,5 +44,4 @@ Colours, sizes and the network are in the `SETTINGS` block at the top of `site.j
 
 ## Open items
 
-- The G.I. Bill paper links to `#`. Replace `#` in `research.html` with the paper's link.
 - `photo.jpg` is cropped from a screenshot of the old site; replace it with the original for a sharper photo.
