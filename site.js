@@ -144,7 +144,9 @@ function start(){const c=md($('#content').textContent);
   $('#page').innerHTML=c.photo?`<main><div class="pw"><div class="photo"></div><div class="pm"></div></div><div class="text">${c.html}</div></main>`:`<div class="text solo">${c.html}</div>`;
   tm=$('#tm');pw=$('.pw');pm=$('.pm');cv=$('#net');ctx=cv.getContext('2d');
   if(pw){const ph=$('.photo');ph.style.backgroundImage=`url("${c.photo}")`;ph.setAttribute('role','img');ph.setAttribute('aria-label',c.alt);
-    pw.addEventListener('pointerenter',()=>hover(pm,true));pw.addEventListener('pointerleave',()=>hover(pm,false))}
+    pw.addEventListener('pointerenter',()=>hover(pm,true));pw.addEventListener('pointerleave',()=>hover(pm,false));
+    // the photo's size follows the window height, so its frame is redrawn whenever the photo changes size
+    let first=true;new ResizeObserver(()=>{if(first){first=false;return}marks(false)}).observe(pw)}
   $('.hd').addEventListener('pointerenter',()=>hover(tm,true));$('.hd').addEventListener('pointerleave',()=>hover(tm,false));
   addEventListener('pointermove',e=>{MX=e.clientX;MY=e.clientY;IN=1});
   document.addEventListener('mouseout',e=>{if(!e.relatedTarget)IN=0});
