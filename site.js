@@ -32,7 +32,7 @@ const SPEC={column:['single',['single','profile']],onePage:[false],menuPlace:['t
     'edgeworth','indiff','ppf','cobweb','phillips','kuznets','solow','cycle','malthus','gravity','median','condorcet','dilemma','did','rd','eventstudy','iv','orbit','yc','ycreg','yclabel','y','ydc','ycit','yinc','chen','ycsans','file']],iconColour:['link'],iconColour2:['none'],
   iconBack:['none',['none','soft','square','circle','ring']],iconTwoTone:[false],
   network:[true],networkColour:['link'],strength:[.6,0,1.5],density:[.55,0,2],reach:[100,40,240],speed:[10,0,40],pull:[.5,0,3],
-  gravityRange:[220,60,400],steady:[.8,.05,3],spacing:[0,0,2],speedSpread:[0,0,.8],sizeSpread:[0,0,1],shadeSpread:[0,0,.8],heavyBig:[false],lifespan:[40,5,200],clickDots:[60,0,200],quietInside:[.05,0,1],quietMargin:[1,0,6],quietFade:[3,.5,10]};
+  gravityRange:[220,60,400],steady:[.8,.05,3],spacing:[0,0,2],speedSpread:[0,0,.8],sizeSpread:[0,0,1],shadeSpread:[0,0,.8],heavyBig:[false],lifeMin:[30,5,300],lifeMax:[90,5,300],families:[0,0,1],moons:[0,0,.5],twinkle:[0,0,1],clickDots:[60,0,200],quietInside:[.05,0,1],quietMargin:[1,0,6],quietFade:[3,.5,10]};
 const HEX=/^#[0-9a-f]{6}$/i;
 function clean(o){const s={};o=o||{};
   for(const[k,[d,a,b]]of Object.entries(SPEC)){const v=o[k];
@@ -320,47 +320,76 @@ function calmAt(x,y){if(!TR.length)return 1;let d=1e12;
   for(const r of TR){const dx=Math.max(r.left-x,0,x-r.right),dy=Math.max(r.top-y,0,y-r.bottom),dd=dx*dx+dy*dy;if(dd<d){d=dd;if(!d)break}}
   const g=S.paraGap*fsPx()*S.lineSpacing,s=(Math.sqrt(d)-S.quietMargin*g)/(S.quietFade*g);return S.quietInside+(1-S.quietInside)*sm(s)}
 
-// background network. Each dot fades in, lives about lifespan seconds, fades out, and a new one fades in elsewhere.
+// background network. Each dot fades in, lives a random lifeMin to lifeMax seconds, fades out, and a new one fades in elsewhere.
 // Dots cruise at a set speed in their own direction; each pair within gravityRange pulls along a softened inverse square, which
 // bends their paths as they pass. The pull grows with the square of the speed, so a path keeps its shape at any speed (pull 0.5 at
 // speed 10 is the original fly-by gravity). The pull fades out for dots moving together, and every heading turns slowly at random,
 // so no pair ends up travelling as one; a governor returns each dot to cruising speed at rate steady (low = dots speed up and slow
-// down through a pass, as planets do); spacing pushes dots apart within SPACE px; a soft push near the edges turns them back inside.
+// down through a pass, as planets do); spacing pushes dots apart within SPACE px.
+// Open edges: the dots live in a field that reaches reach + 20 px past the window on every side. A dot that leaves the field is
+// gone; it is then out of reach of every dot in the window, so none of its lines shows as it goes. Another dot comes in at a
+// random point of the field's edge, partway through its life and heading inward, with the spread of headings at which dots cross
+// a line in an endless field. The window thus shows part of an endless field: no wall, nothing turns back, and the dots per area
+// are the same at the edges as in the middle.
 // Variety: each dot is born with its own cruising speed (speed x 1 ± speedSpread), size (log-even spread) and shade (1 down to
-// 1 - shadeSpread); with heavyBig, a dot's pull grows with its area (average pull unchanged).
-const BIRTH=1000,FADE=2500,GRAV=5000,SOFT=900,SPACE=36,TURN=.15,EDGE=60,WALL=30;
-const count=()=>Math.min(170,Math.round(VW*VH/16000*S.density));
-function node(x,y,t,o={}){const th=Math.random()*6.28,u=()=>2*Math.random()-1,sf=1+S.speedSpread*u(),a=.8*S.sizeSpread,sz=Math.exp(a*u());
-  return{x,y,vx:S.speed*sf*Math.cos(th),vy:S.speed*sf*Math.sin(th),sf,sz,m:S.heavyBig&&a?sz*sz*2*a/Math.sinh(2*a):1,sh:1-S.shadeSpread*Math.random(),
-  ax:0,ay:0,born:0,die:0,lf:1,click:0,end:t+S.lifespan*1000*(.6+.8*Math.random()),...o}}
+// 1 - shadeSpread); with heavyBig, a dot's pull grows with its area (average pull unchanged). A share families of births (not of
+// dots coming in) are a group of 3 or 4 dots heading the same way; about a share moons of the dots, all from the larger half, have
+// a tiny moon on a tilted orbit; with twinkle, each dot brightens and dims by up to that share and swells by 15% of it, at its own
+// pace (one round in 5 to 10 s).
+const BIRTH=1000,FADE=2500,GRAV=5000,SOFT=900,SPACE=36,TURN=.15,rnd=Math.random,u=()=>2*rnd()-1,out=()=>S.reach+20;
+// dots in the field: density per window area (at most 170 in the window), scaled up to the field
+const count=()=>{const o=out();return!VW||!VH?0:Math.round(Math.min(170,VW*VH/16000*S.density)*(VW+2*o)*(VH+2*o)/(VW*VH))};
+function node(x,y,t,o={}){const th=rnd()*6.28,sf=1+S.speedSpread*u(),a=.8*S.sizeSpread,w=u(),sz=Math.exp(a*w),mt=rnd()*3.14;
+  return{x,y,vx:S.speed*sf*Math.cos(th),vy:S.speed*sf*Math.sin(th),sf,sz,m:S.heavyBig&&a?sz*sz*2*a/Math.sinh(2*a):1,sh:1-S.shadeSpread*rnd(),
+  ax:0,ay:0,born:0,die:0,lf:1,click:0,end:t+1000*(S.lifeMin+Math.max(0,S.lifeMax-S.lifeMin)*rnd()),
+  ph:rnd()*6.28,tw:6.283/(5000+5000*rnd()),big:w>=0,rm:rnd(),ma:rnd()*6.28,mw:(rnd()<.5?-1:1)*6.283/(6000+5000*rnd()),mc:Math.cos(mt),ms:Math.sin(mt),...o}}   // twinkle; moon (tilt mt)
+const spot=()=>{const o=out();return[-o+rnd()*(VW+2*o),-o+rnd()*(VH+2*o)]};   // a random point of the field
 function initNet(){const t=performance.now();P=[];N=count();
-  for(let i=0;i<N;i++){const p=node(Math.random()*VW,Math.random()*VH,t);p.end=t+(p.end-t)*Math.random();P.push(p)}}  // staggered first lives
+  for(let i=0;i<N;i++){const p=node(...spot(),t);p.end=t+(p.end-t)*rnd();P.push(p)}}  // staggered first lives
 function life(p,t){let a=1;if(p.born)a=sm((t-p.born)/BIRTH);if(p.die)a*=1-sm((t-p.die)/FADE);return a}
-function step(t,dt){const G=GRAV*S.pull*(S.speed/10)**2,GR=S.gravityRange,far=Math.max(GR,S.spacing?SPACE:0)**2;
+// a new dot at a random point of the field, or (a share families of births) a group of 3 or 4 heading the same way
+function birth(t){const[x,y]=spot(),o={born:t,lf:0};if(rnd()>=S.families){P.push(node(x,y,t,o));return 1}
+  const h=rnd()*6.28,n=3+(rnd()<.4);
+  for(let i=0;i<n;i++){const p=node(x+12*u(),y+12*u(),t,o),g=h+.3*u(),v=S.speed*p.sf;p.vx=v*Math.cos(g);p.vy=v*Math.sin(g);P.push(p)}
+  return n}
+// a dot coming in across the field's edge: a random point of the edge, an angle to the inward normal spread as cos (as dots cross a
+// line in an endless field), and the remaining part of a life
+function enter(t){const o=out(),W=VW+2*o,H=VH+2*o;let s=rnd()*2*(W+H),x,y,nx=0,ny=0;
+  if(s<W){x=-o+s;y=-o;ny=1}else if((s-=W)<W){x=-o+s;y=VH+o;ny=-1}else if((s-=W)<H){x=-o;y=-o+s;nx=1}else{x=VW+o;y=-o+s-H;nx=-1}
+  const p=node(x,y,t,{born:t,lf:0}),v=S.speed*p.sf,a=Math.asin(u()),c=Math.cos(a),q=Math.sin(a);
+  p.vx=v*(nx*c-ny*q);p.vy=v*(nx*q+ny*c);p.end=t+(p.end-t)*rnd();P.push(p)}
+function step(t,dt){const G=GRAV*S.pull*(S.speed/10)**2,GR=S.gravityRange,far=Math.max(GR,S.spacing?SPACE:0)**2,iv=1/Math.max(S.speed,.1),o=out();
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy;if(d2>far)continue;
     const d=Math.sqrt(d2),q=d2+SOFT,lf=Math.min(a.lf,b.lf);
-    const f=G*lf*sm(1-d/GR)*sm(Math.hypot(b.vx-a.vx,b.vy-a.vy)/Math.max(S.speed,.1))/(q*Math.sqrt(q)),
+    const ux=b.vx-a.vx,uy=b.vy-a.vy,f=G*lf*sm(1-d/GR)*sm(Math.sqrt(ux*ux+uy*uy)*iv)/(q*Math.sqrt(q)),
       r=S.spacing&&d<SPACE&&d>.01?S.spacing*2*lf*sm(1-d/SPACE)/d:0,   // a gentle push apart, up to 2 px/s² per unit of spacing
       fa=f*b.m-r,fb=f*a.m-r;
     a.ax+=dx*fa;a.ay+=dy*fa;b.ax-=dx*fb;b.ay-=dy*fb}
   for(const p of P){let ax=p.ax,ay=p.ay;p.ax=p.ay=0;
     if(!p.die&&t>p.end)p.die=t;
     if(p.click&&t-p.born<BIRTH)continue;   // a clicked dot stays exactly where it was clicked while it fades in
-    const nx=(p.x<EDGE?sm(1-p.x/EDGE):0)-(p.x>VW-EDGE?sm(1-(VW-p.x)/EDGE):0),ny=(p.y<EDGE?sm(1-p.y/EDGE):0)-(p.y>VH-EDGE?sm(1-(VH-p.y)/EDGE):0);
-    if((nx||ny)&&p.vx*nx+p.vy*ny<2){ax+=nx*WALL;ay+=ny*WALL}   // the push stops once the dot is heading back inside
-    const v=Math.hypot(p.vx,p.vy),r=(Math.random()-.5)*TURN*Math.sqrt(12*dt),c=Math.cos(r),s=Math.sin(r);   // slow random turn
-    [p.vx,p.vy]=[p.vx*c-p.vy*s,p.vx*s+p.vy*c];
-    if(v<.01){const th=Math.random()*6.28;p.vx=.1*Math.cos(th);p.vy=.1*Math.sin(th)}else{const g=S.steady*(S.speed*p.sf-v)/v;ax+=g*p.vx;ay+=g*p.vy}
-    p.vx+=ax*dt;p.vy+=ay*dt;p.x=Math.min(VW+EDGE,Math.max(-EDGE,p.x+p.vx*dt));p.y=Math.min(VH+EDGE,Math.max(-EDGE,p.y+p.vy*dt))}
-  P=P.filter(p=>!p.die||t-p.die<FADE);
+    const vx=p.vx,v=Math.sqrt(vx*vx+p.vy*p.vy),r=(rnd()-.5)*TURN*Math.sqrt(12*dt),c=Math.cos(r),s=Math.sin(r);   // slow random turn
+    p.vx=vx*c-p.vy*s;p.vy=vx*s+p.vy*c;
+    if(v<.01){const th=rnd()*6.28;p.vx=.1*Math.cos(th);p.vy=.1*Math.sin(th)}else{const g=S.steady*(S.speed*p.sf-v)/v;ax+=g*p.vx;ay+=g*p.vy}
+    p.vx+=ax*dt;p.vy+=ay*dt;p.x+=p.vx*dt;p.y+=p.vy*dt}
+  let gone=0;   // dots that left the field (a dying or clicked one is not replaced)
+  P=P.filter(p=>{if(p.x<-o||p.x>VW+o||p.y<-o||p.y>VH+o){if(!p.click&&!p.die)gone++;return false}return!p.die||t-p.die<FADE});
+  for(;gone>0;gone--)enter(t);
   let alive=0;for(const p of P)if(!p.click&&!p.die)alive++;
-  for(;alive<N;alive++)P.push(node(Math.random()*VW,Math.random()*VH,t,{born:t,lf:0}))}
+  while(alive<N)alive+=birth(t)}
 function draw(t){const k=S.strength,c=NC.join(',');ctx.clearRect(0,0,VW,VH);if(!S.network||!P.length)return;textRects();
   P.forEach(p=>{p.lf=life(p,t)});ctx.lineWidth=.6;
-  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>=S.reach)continue;
-    const al=sm(1-d/S.reach)*.32*k*Math.min(a.lf,b.lf)*Math.sqrt(a.sh*b.sh)*calmAt((a.x+b.x)/2,(a.y+b.y)/2);if(al<.006)continue;
+  const R=S.reach,R2=R*R;
+  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
+    if(d2>=R2||a.x<0&&b.x<0||a.y<0&&b.y<0||a.x>VW&&b.x>VW||a.y>VH&&b.y>VH)continue;   // too far apart, or both past one edge
+    const al=sm(1-Math.sqrt(d2)/R)*.32*k*Math.min(a.lf,b.lf)*Math.sqrt(a.sh*b.sh)*calmAt((a.x+b.x)/2,(a.y+b.y)/2);if(al<.006)continue;
     ctx.strokeStyle=`rgba(${c},${Math.min(1,al)})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
-  P.forEach(p=>{const a=Math.min(1,.55*k*p.lf*p.sh*calmAt(p.x,p.y));if(a<.006)return;ctx.fillStyle=`rgba(${c},${a})`;ctx.beginPath();ctx.arc(p.x,p.y,1.6*p.sz*Math.sqrt(p.lf),0,7);ctx.fill()})}
+  P.forEach(p=>{if(p.x<-16||p.x>VW+16||p.y<-16||p.y>VH+16)return;   // out of sight
+    const tw=1+S.twinkle*Math.sin(t*p.tw+p.ph),calm=calmAt(p.x,p.y),a=Math.min(1,.55*k*p.lf*p.sh*calm*tw);
+    if(a>=.006){ctx.fillStyle=`rgba(${c},${a})`;ctx.beginPath();ctx.arc(p.x,p.y,1.6*p.sz*Math.sqrt(p.lf)*(1+.15*(tw-1)),0,7);ctx.fill()}
+    if(S.moons&&p.big&&p.rm<2*S.moons){const an=p.ma+t*p.mw,r=4+3*p.sz,ex=Math.cos(an)*r,ey=Math.sin(an)*r*.4,
+      ma=Math.min(1,.55*k*p.lf*p.sh*calm*(ey>0?1:.55));   // the moon on its tilted orbit, fainter on the far side
+      if(ma>=.006){ctx.fillStyle=`rgba(${c},${ma})`;ctx.beginPath();ctx.arc(p.x+ex*p.mc-ey*p.ms,p.y+ex*p.ms+ey*p.mc,.85*Math.sqrt(p.lf),0,7);ctx.fill()}}})}
 // while the tab is hidden the page stops; every life cycle is shifted by the pause so the dots resume where they were
 function loop(t){if(last&&t-last>250){const g=t-last;P.forEach(p=>{if(p.born)p.born+=g;if(p.die)p.die+=g;p.end+=g})}
   const dt=last?Math.min(.05,(t-last)/1000):0;last=t;if(S.network)step(t,dt);draw(t);requestAnimationFrame(loop)}

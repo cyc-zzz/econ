@@ -82,7 +82,11 @@ const SETTINGS={
   sizeSpread:0.6,                 // dot sizes vary up to about 2 times either way at 1 (0 = all alike)
   shadeSpread:0,                  // some dots fainter, down to 1 - this
   heavyBig:true,                  // big dots pull more (by area)
-  lifespan:40,                    // seconds a dot lives (60-140% of this) before it fades and a new one appears
+  lifeMin:30,                     // fewest seconds a dot lives before it fades and a new one appears
+  lifeMax:90,                     // most seconds; each dot's life is drawn evenly between the two
+  families:0.12,                  // share of births that are a group of 3 or 4 dots heading the same way (0 = none)
+  moons:0.12,                     // share of dots with a tiny moon circling them, all from the larger half (0 = none, at most 0.5)
+  twinkle:0.25,                   // dots brighten and dim by up to this share (and swell a little), each at its own pace (0 = steady)
   clickDots:60,                   // most clicked dots on screen at once, fading ones included
   quietInside:0.05,               // network strength over text (0 = hidden)
   quietMargin:1,                  // quiet margin around text, in gaps
