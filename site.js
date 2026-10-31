@@ -1,5 +1,5 @@
 // Yicheng Chen website: engine for every page (layout, fonts, colours, background network).
-// The design values are in settings.js; the easiest way to change them is design.html.
+// The design values are in settings.js.
 (()=>{
 // fonts on offer: [name, CSS font list, Google Fonts family ('' = already on every device)]
 const FONTS={
@@ -163,14 +163,14 @@ function iconSVG(style,c,name,size,back='none',two=false,c2=null,acc=false){cons
   return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"${size?` width="${size}" height="${size}"`:''}>${G}${tile}${body}</svg>`}
 const pick=(k,S)=>k==='link'?S.link:k==='muted'?S.muted:k==='text'?S.text:k==='heading'?pick(S.headingColour,S):k==='dots'?pick(S.networkColour,S):k;   // colour keyword -> colour
 window.SiteEngine={FONTS,SPEC,clean,cleanSite,iconSVG,pick};
-if(document.documentElement.hasAttribute('data-panel'))return;   // design.html only borrows the tables above
+if(document.documentElement.hasAttribute('data-panel'))return;   // an editor page only borrows the tables above
 
 const $=q=>document.querySelector(q),R=document.documentElement.style,RM=matchMedia('(prefers-reduced-motion: reduce)').matches,
   fileOf=u=>{let f=new URL(u,location.href).pathname.split('/').pop();try{f=decodeURIComponent(f)}catch(e){}f=f||'index.html';return/\./.test(f)?f:f+'.html'},EDIT=document.documentElement.hasAttribute('data-edit'),
   FILE=EDIT?fileOf(((typeof SITE==='object'&&SITE&&Array.isArray(SITE.menu)&&SITE.menu[0])||[0,'index.html'])[1]):fileOf(location.href),
   PREVIEW=window.parent!==window&&/[?&]preview\b/.test(location.search),DRAFT=!PREVIEW&&/[?&]draft\b/.test(location.search);
 let PGO=null,S=clean(typeof SETTINGS==='object'?SETTINGS:{}),SI=cleanSite(typeof SITE==='object'?SITE:{}),waiting=PREVIEW,started=false;
-// design.html shows a draft: in its preview windows it sends the settings; "Open full page" reads them from this browser
+// previews: in a preview window an editor sends the settings; a ?draft page reads them from this browser
 const pagesOf=o=>o&&typeof o==='object'?Object.fromEntries(Object.entries(o).filter(([k,v])=>typeof v==='string')):null;
 if(DRAFT)try{const d=JSON.parse(localStorage.getItem('yc-site-draft'));if(d){S=clean(d.settings);SI=cleanSite(d.site);PGO=pagesOf(d.pages)}}catch(e){}
 
@@ -193,7 +193,7 @@ function look(){const b=S.textSize,k=S.fluidScale,x=r=>`calc(var(--fs)*${+r.toFi
     const u='https://fonts.googleapis.com/css2?'+fam.map(x=>'family='+x).join('&')+'&display=swap';if(l.getAttribute('href')!==u)l.href=u}
   else if(l)l.remove();
   let m=$('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m)}m.content=S.background;
-  // tab icon drawn from the settings as a second, SVG icon; icon.png (the same design, downloaded from design.html) stays for search
+  // tab icon drawn from the settings as a second, SVG icon; icon.png (the same design as a file) stays for search
   // engines and browsers without SVG icons
   let sv=$('#svgicon');if(S.icon==='file'){if(sv)sv.remove()}
   else{if(!sv){sv=document.createElement('link');sv.id='svgicon';sv.rel='icon';sv.type='image/svg+xml';document.head.appendChild(sv)}
@@ -244,7 +244,7 @@ const DEMO_MD=`
 with A. Coauthor and B. Coauthor
 Revise and Resubmit, Journal of Economic History
 [Draft](#) [SSRN](#) [Slides](#)
-> This example appears only in the design panel, so the abstract can be tried. A typical abstract states the question, the setting and the data, the method, and the main finding with its size, in about 150 words. Click Abstract to open and close it; a pop-up or a window also closes with a click outside or the Escape key.`;
+> This example appears only in previews, so the abstract can be tried. A typical abstract states the question, the setting and the data, the method, and the main finding with its size, in about 150 words. Click Abstract to open and close it; a pop-up or a window also closes with a click outside or the Escape key.`;
 // the text of a page; the example paper joins the first page after Home (or Home when it is the only page)
 const textOf=(f,own)=>(PGO&&PGO[f]!==undefined?PGO[f]:own!==undefined?own:PG[f]||'')+(DEMO&&f===fileOf((SI.menu[1]||SI.menu[0])[1])?DEMO_MD:'');
 function render(){const B=document.body,home=B.dataset.page==='home',q=PREVIEW?'?preview':DRAFT?(DEMO?'?draft&demo':'?draft'):'',c=md(textOf(FILE,CONTENT)),
@@ -373,7 +373,7 @@ const PG=typeof PAGES==='object'&&PAGES?PAGES:{};
 function start(){CONTENT=PG[FILE]!==undefined?PG[FILE]:($('#content')||{}).textContent||'';
   document.body.insertAdjacentHTML('afterbegin','<canvas id="net" aria-hidden="true"></canvas><header class="top"></header><main class="wrap" id="page"></main><footer id="foot"></footer>');
   cv=$('#net');ctx=cv.getContext('2d');HD=$('header');WR=$('#page');FT=$('#foot');render();started=true;
-  if(typeof PAGES!=='object'&&!$('#content'))WR.insertAdjacentHTML('afterbegin','<p class="cjs-err">The page text could not be read: content.js has an error (often a stray ` back-quote). Open edit.html and press Download content.js again.</p>');
+  if(typeof PAGES!=='object'&&!$('#content'))WR.insertAdjacentHTML('afterbegin','<p class="cjs-err">The page text could not be read: content.js has an error.</p>');
   // menu: the current page does nothing; another page fades out first when pageFade is on
   document.addEventListener('click',e=>{const a=e.target.closest('.top a,.sidenav a');if(!a||e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;
     if(fileOf(a.href)===FILE){if(!a.hash)e.preventDefault();return}
@@ -396,9 +396,9 @@ function start(){CONTENT=PG[FILE]!==undefined?PG[FILE]:($('#content')||{}).textC
   size(true);requestAnimationFrame(loop);
   if(PREVIEW){parent.postMessage({type:'site-ready',file:FILE},'*');setTimeout(()=>{if(waiting){waiting=false;render()}},1500)}}
 
-// edit.html redraws the page with the edited text after each change
+// an editor page (<html data-edit>) redraws the page with the edited text after each change
 if(EDIT)window.SiteEngine.draw=(site,pages)=>{SI=cleanSite(site);PGO=pagesOf(pages);if(started){render();N=count()}};
-// preview windows of design.html: new settings arrive as a message and the page is redrawn; the network keeps its dots
+// preview windows: new settings arrive as a message and the page is redrawn; the network keeps its dots
 addEventListener('message',e=>{if(!PREVIEW||e.source!==parent||(e.origin!==location.origin&&location.protocol!=='file:'))return;
   const d=e.data||{};if(d.type!=='site-preview')return;
   S=clean(d.settings);SI=cleanSite(d.site);PGO=pagesOf(d.pages);DEMO=!!d.demo;DEMO_OPEN=!!d.demoOpen;waiting=false;look();if(DLG&&DLG.open&&!DEMO_OPEN)DLG.close();if(started){render();N=count()}});

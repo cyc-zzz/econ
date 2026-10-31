@@ -1,6 +1,4 @@
 // Yicheng Chen website: the text of the page, the name and the contacts.
-// The easiest way to change it: open edit.html (in the Dropbox folder), change the text on the page, press "Download content.js",
-// and replace this file with it. Or change the words between the back-quotes here; keep the back-quotes and commas.
 //
 //   # Research                  title of a part
 //   ## Working Papers           a list of papers

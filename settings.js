@@ -1,6 +1,5 @@
 // Yicheng Chen website: design settings. The text, the name, the menu and the contacts are in content.js.
-// The design is settled. To change it, open the full design editor kept in Dropbox\Project\Site\archive\2026-10-31\design.html,
-// adjust, press "Download settings.js", and replace this file with it.
+// Each value is explained on its line.
 
 const SETTINGS={
   column:'profile',               // single, or profile (photo, name and contact in a column on the left)
