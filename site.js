@@ -42,7 +42,12 @@ function clean(o){const s={};o=o||{};
 // links may point to web pages, email, or files of this site; anything else becomes "#"
 const safe=u=>/^(https?:\/\/|mailto:|tel:)/i.test(u)||!/^[a-z][\w+.-]*:/i.test(u)&&!/[\s"'<>`\\]/.test(u)?u:'#',str=(v,d)=>typeof v==='string'?v:d;
 function cleanSite(o){o=o||{};const m=Array.isArray(o.menu)?o.menu.filter(x=>Array.isArray(x)&&typeof x[0]==='string'&&typeof x[1]==='string').map(([t,u])=>[t,safe(u)]):[];
-  return{name:str(o.name,'Yicheng Chen'),menu:m.length?m:[['Home','index.html']],photo:safe(str(o.photo,'photo.jpg')),sidebar:str(o.sidebar,''),about:str(o.about,'About')}}
+  return{name:str(o.name,'Yicheng Chen'),menu:m.length?m:[['Home','index.html']],photo:safe(str(o.photo,'photo.jpg')),photoFrame:frame(o.photoFrame),sidebar:str(o.sidebar,''),about:str(o.about,'About')}}
+// photo framing [across, down, zoom]: the picture's point at across % and down % sits at the same point of the frame, and the
+// picture is enlarged zoom times around it (1 = it just fills the frame)
+function frame(f){const c=(v,a,b)=>Math.min(b,Math.max(a,v));
+  return Array.isArray(f)&&f.length===3&&f.every(v=>typeof v==='number'&&isFinite(v))?[c(f[0],0,100),c(f[1],0,100),c(f[2],1,4)]:[50,25,1]}
+const frameStyle=([x,y,z])=>{const r=v=>+v.toFixed(2);return`width:${r(100*z)}%;height:${r(100*z)}%;left:${r((1-z)*x)}%;top:${r((1-z)*y)}%;object-position:${r(x)}% ${r(y)}%`};
 // tab icons in colour c, in a 64-unit box. Dot marks: joined dots, with grey lines when two. Letter marks: the initials drawn from the
 // outlines of the site's own typefaces (GL), so they look the same on every device and in icon.png. One rule sizes every mark: it
 // fills a fixed share of the inner area of its background (none 92%, soft and square 70%, circle and ring 62%), centred on its ink.
@@ -162,17 +167,18 @@ function iconSVG(style,c,name,size,back='none',two=false,c2=null,acc=false){cons
   else if(MARKS[style]){const[f,t,tr]=MARKS[style];body=word(f,t,64*share,mc,tr)}
   return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"${size?` width="${size}" height="${size}"`:''}>${G}${tile}${body}</svg>`}
 const pick=(k,S)=>k==='link'?S.link:k==='muted'?S.muted:k==='text'?S.text:k==='heading'?pick(S.headingColour,S):k==='dots'?pick(S.networkColour,S):k;   // colour keyword -> colour
-window.SiteEngine={FONTS,SPEC,clean,cleanSite,iconSVG,pick};
-if(document.documentElement.hasAttribute('data-panel'))return;   // an editor page only borrows the tables above
+window.SiteEngine={FONTS,SPEC,clean,cleanSite,iconSVG,pick,frameStyle};
+if(document.documentElement.hasAttribute('data-panel'))return;   // a page marked data-panel only borrows the tables above
 
 const $=q=>document.querySelector(q),R=document.documentElement.style,RM=matchMedia('(prefers-reduced-motion: reduce)').matches,
   fileOf=u=>{let f=new URL(u,location.href).pathname.split('/').pop();try{f=decodeURIComponent(f)}catch(e){}f=f||'index.html';return/\./.test(f)?f:f+'.html'},EDIT=document.documentElement.hasAttribute('data-edit'),
   FILE=EDIT?fileOf(((typeof SITE==='object'&&SITE&&Array.isArray(SITE.menu)&&SITE.menu[0])||[0,'index.html'])[1]):fileOf(location.href),
   PREVIEW=window.parent!==window&&/[?&]preview\b/.test(location.search),DRAFT=!PREVIEW&&/[?&]draft\b/.test(location.search);
-let PGO=null,S=clean(typeof SETTINGS==='object'?SETTINGS:{}),SI=cleanSite(typeof SITE==='object'?SITE:{}),waiting=PREVIEW,started=false;
-// previews: in a preview window an editor sends the settings; a ?draft page reads them from this browser
+let PGO=null,DPIC='',S=clean(typeof SETTINGS==='object'?SETTINGS:{}),SI=cleanSite(typeof SITE==='object'?SITE:{}),waiting=PREVIEW,started=false;
+// previews: a preview window receives the settings by message; a ?draft page reads them from this browser
 const pagesOf=o=>o&&typeof o==='object'?Object.fromEntries(Object.entries(o).filter(([k,v])=>typeof v==='string')):null;
-if(DRAFT)try{const d=JSON.parse(localStorage.getItem('yc-site-draft'));if(d){S=clean(d.settings);SI=cleanSite(d.site);PGO=pagesOf(d.pages)}}catch(e){}
+if(DRAFT)try{const d=JSON.parse(localStorage.getItem('yc-site-draft'));if(d){S=clean(d.settings);SI=cleanSite(d.site);PGO=pagesOf(d.pages);
+  if(typeof d.pic==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(d.pic))DPIC=d.pic}}catch(e){}
 
 // colours, sizes, fonts and the tab icon, set before the page is drawn. Every size and gap is a multiple of the body size --fs, so
 // when fluidScale is above 1 the body size alone grows with the window (textSize at a 360 px window, textSize x fluidScale from
@@ -258,7 +264,7 @@ function render(){const B=document.body,home=B.dataset.page==='home',q=PREVIEW?'
   // menu items: pages, or on a one-page home the sections of this page
   const items=SI.menu.map(([t,u],i)=>one?[i?t:SI.about||t,'#'+(i?slug(u):'about'),i===0]:[t,u+q,fileOf(u)===FILE]),
     links=items.map(([t,u,on])=>`<a href="${esc(u)}"${on?' class="on" aria-current="page"':''}>${esc(t)}</a>`).join('');
-  const h1=c.title&&!(home&&!S.homeTitle)?`<h1>${esc(c.title)}</h1>`:'',img=(u,a)=>`<img class="photo" src="${esc(safe(u))}" alt="${a}">`,
+  const h1=c.title&&!(home&&!S.homeTitle)?`<h1>${esc(c.title)}</h1>`:'',img=(u,a)=>`<span class="photo"><img src="${u===SI.photo&&DPIC||esc(safe(u))}" alt="${a}" style="${frameStyle(u===SI.photo?SI.photoFrame:[50,50,1])}"></span>`,
     top=S.bannerTitle&&place==='top'?'':h1;
   HD.innerHTML=place!=='top'?'':`<div class="bar"><a class="name" href="${esc(SI.menu[0][1])}${q}">${esc(SI.name)}</a><nav>${links}</nav></div>`+(S.bannerTitle&&h1?`<div class="banner">${h1}</div>`:'');
   const sb=md(SI.sidebar,true);
@@ -425,7 +431,7 @@ function start(){CONTENT=PG[FILE]!==undefined?PG[FILE]:($('#content')||{}).textC
   size(true);requestAnimationFrame(loop);
   if(PREVIEW){parent.postMessage({type:'site-ready',file:FILE},'*');setTimeout(()=>{if(waiting){waiting=false;render()}},1500)}}
 
-// an editor page (<html data-edit>) redraws the page with the edited text after each change
+// a page marked <html data-edit> redraws itself with new text after each change
 if(EDIT)window.SiteEngine.draw=(site,pages)=>{SI=cleanSite(site);PGO=pagesOf(pages);if(started){render();N=count()}};
 // preview windows: new settings arrive as a message and the page is redrawn; the network keeps its dots
 addEventListener('message',e=>{if(!PREVIEW||e.source!==parent||(e.origin!==location.origin&&location.protocol!=='file:'))return;

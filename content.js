@@ -16,6 +16,7 @@ const SITE={
   name:'Yicheng Chen',            // at the top of the profile column and in the tab
   menu:[['Home','index.html'],['Research','research.html']],   // [label, part]; the first is the top of the page
   photo:'photo.jpg',              // photo in the profile column
+  photoFrame:[40,32,1.7],         // photo framing: across and down (0 to 100) and zoom (1 to 4)
   about:'About',                  // heading of the first part
   // profile column: position lines, an empty line, then the links (email, CV, others)
   sidebar:`Ph.D. Candidate in Economics

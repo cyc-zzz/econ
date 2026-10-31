@@ -148,8 +148,9 @@ section{scroll-margin-top:var(--L)}
 .dlg-x:hover{color:var(--text)}
 .paper .btns :is(a,button):active{transform:translateY(1px)}
 /* photo and home (single column) */
-.photo{display:block;flex:none;width:var(--pw);max-width:100%;height:auto;aspect-ratio:364/469;object-fit:cover;border-radius:var(--pr)}
-.ph-circle .photo{aspect-ratio:1;border-radius:50%;object-position:50% 25%}
+.photo{display:block;flex:none;position:relative;overflow:hidden;width:var(--pw);max-width:100%;aspect-ratio:364/469;border-radius:var(--pr)}
+.photo img{position:absolute;display:block;max-width:none;object-fit:cover}   /* placed by the photo framing in content.js */
+.ph-circle .photo{aspect-ratio:1;border-radius:50%}
 .home{display:flex;align-items:flex-start;gap:var(--cg)}
 .ta-center .home{justify-content:center}
 .ta-center.home-side .home .text{max-width:460px}
