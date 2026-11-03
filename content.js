@@ -50,7 +50,7 @@ I hold an M.A. in Economics from the University of Chicago and a B.S. in Economi
 ### The Value of Local Public Investment: Evidence from Tax and Bond Referenda
 with Nhan Ngo
 
-### Costs of Service: The Short- and Long-Term Effects of WWII Injuries
+### The Costs of Service: Short- and Long-Term Effects of WWII Injuries
 with Michael Briskin and Vasudha Ramakrishna
 
 ### Partisan Sorting in American Governments
