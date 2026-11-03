@@ -31,7 +31,7 @@ const PAGES={
 'index.html':`# Home
 ![Yicheng Chen](photo.jpg)
 
-I am a fourth-year Ph.D. candidate in Economics at Boston University. My research focuses on political economy and economic history.
+I am a fifth-year Ph.D. candidate in Economics at Boston University. My research focuses on public economy, political economy, and economic history.
 
 Prior to joining the doctoral program, I worked as a Research Assistant at the Center for Quantitative History at the University of Hong Kong.
 
