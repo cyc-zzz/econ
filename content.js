@@ -7,7 +7,8 @@
 //   ![Yicheng Chen](photo.jpg)  the photo, with its description for screen readers
 //   a paper:                    ### title
 //                               lines such as "with Coauthor Name" or "Revise and Resubmit, Journal"
-//                               a line of links such as [Draft](link) [SSRN](link)
+//                               a line of links, always in this order: [Journal](link) once published, [Paper](link) (the latest
+//                               version), [SSRN](link), then any [Appendix](link) [Slides](link) [Code](link); Abstract comes first by itself
 //                               a line starting with > holds the abstract (optional; without it there is no Abstract button)
 //
 // The page has two parts, both on index.html: 'index.html' below is the top (About) and 'research.html' the Research part.
@@ -41,5 +42,20 @@ I hold an M.A. in Economics from the University of Chicago and a B.S. in Economi
 ## Working Papers
 
 ### The G.I. Bill Beyond College: Agricultural Training and Veteran Farmers
-[Draft](https://www.dropbox.com/scl/fi/s2hwog7vgz95o4xcembhw/WWIIDraft.pdf?rlkey=x4l8bsleranqpx560gk0q0rhg&st=u40188vg&dl=0)`
+[Paper](https://www.dropbox.com/scl/fi/s2hwog7vgz95o4xcembhw/WWIIDraft.pdf?rlkey=x4l8bsleranqpx560gk0q0rhg&st=u40188vg&dl=0) [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5002477)
+> Switching occupations is costly for experienced workers, raising the question of whether public programs can shift their career paths. After World War II, the G.I. Bill funded on-farm training for 700,000 veterans. Using the 1940 draft lottery and newly digitized draft cards linked to censuses, I find that older veterans were more likely to operate farms in 1950, while employment and earnings did not change significantly. Veteran status likely drew some older, and rural and less educated, men into farming, mainly through on-farm training, just as the G.I. Bill sent younger ones to college.
+
+## Work in Progress
+
+### The Value of Local Public Investment: Evidence from Tax and Bond Referenda
+with Nhan Ngo
+
+### Costs of Service: The Short- and Long-Term Effects of WWII Injuries
+with Michael Briskin and Vasudha Ramakrishna
+
+### Partisan Sorting in American Governments
+
+### Who Left, and What Did It Cost? The 2025 Federal Workforce Cuts
+
+### American Business, 1860–1925`
 };

@@ -24,7 +24,8 @@ const SPEC={column:['single',['single','profile']],onePage:[false],menuPlace:['t
   band:['none',['none','tint','accent']],bannerTitle:[false],titleAlign:['center',['center','left']],homeTitle:[true],homeLayout:['side',['side','top']],
   photoShape:['rounded',['rounded','circle']],background:['#ffffff'],text:['#1f2328'],muted:['#59636e'],link:['#0969da'],
   lines:['#d1d9e0'],font:['system',Object.keys(FONTS)],headingFont:['same',['same',...Object.keys(FONTS)]],textSize:[16,12,24],textWeight:[400,300,500],
-  lineSpacing:[1.6,1.2,2.2],smallLeading:[1.45,1.1,2],entryGap:[.75,.25,3],fluidScale:[1,1,1.5],smallSize:[14,10,22],smallFont:['same',['same',...Object.keys(FONTS)]],paraGap:[.75,.25,2],sectionGap:[2.5,1,6],columnGap:[3,1,8],topSpace:[2.5,.5,6],nameSize:[20,12,40],titleSize:[44,16,72],titleWeight:[400,300,800],headingSize:[20,12,40],
+  lineSpacing:[1.6,1.2,2.2],smallLeading:[1.45,1.1,2],fluidScale:[1,1,1.5],smallSize:[14,10,22],smallFont:['same',['same',...Object.keys(FONTS)]],
+  gapInside:[.5,0,2],gapEntries:[1.25,.25,4],gapHeading:[.75,0,3],gapLists:[1.75,.25,6],gapSections:[2.5,.5,8],columnGap:[3,1,8],topSpace:[2.5,.5,6],nameSize:[20,12,40],titleSize:[44,16,72],titleWeight:[400,300,800],headingSize:[20,12,40],
   headingWeight:[600,300,800],headingColour:['text'],width:[900,560,1400],photoWidth:[300,80,420],photoCorners:[4,0,40],linkStyle:['subtle',['subtle','solid','hover']],
   menuStyle:['underline',['underline','pill','bold','plain']],headerLine:[false],titleLine:[false],pageFade:[true],
   iconAccent:[false],icon:['constellation',['network','constellation','square','diamond','hub','ycstars','arc','cluster','ringnet','pair','dipper','cassiopeia','orion','cygnus','lyra','crux','scorpius','pleiades','gemini','leo','ursaminor','aquila','delphinus','flyby','web','rising','triad',
@@ -32,7 +33,7 @@ const SPEC={column:['single',['single','profile']],onePage:[false],menuPlace:['t
     'edgeworth','indiff','ppf','cobweb','phillips','kuznets','solow','cycle','malthus','gravity','median','condorcet','dilemma','did','rd','eventstudy','iv','orbit','yc','ycreg','yclabel','y','ydc','ycit','yinc','chen','ycsans','file']],iconColour:['link'],iconColour2:['none'],
   iconBack:['none',['none','soft','square','circle','ring']],iconTwoTone:[false],
   network:[true],networkColour:['link'],strength:[.6,0,1.5],density:[.55,0,2],reach:[100,40,240],speed:[10,0,40],pull:[.5,0,3],
-  gravityRange:[220,60,400],steady:[.8,.05,3],spacing:[0,0,2],speedSpread:[0,0,.8],sizeSpread:[0,0,1],shadeSpread:[0,0,.8],heavyBig:[false],lifeMin:[30,5,300],lifeMax:[90,5,300],families:[0,0,1],moons:[0,0,.5],twinkle:[0,0,1],clickDots:[60,0,200],quietInside:[.05,0,1],quietMargin:[1,0,6],quietFade:[3,.5,10]};
+  gravityRange:[220,60,400],steady:[.8,.05,3],spacing:[0,0,2],speedSpread:[0,0,.8],sizeSpread:[0,0,1],shadeSpread:[0,0,.8],heavyBig:[false],lifeMin:[30,5,300],lifeMax:[90,5,300],families:[0,0,1],moons:[0,0,.5],twinkle:[0,0,1],clickDots:[60,0,200],quietInside:[.05,0,1],quietMargin:[.75,0,4.5],quietFade:[2.25,.25,7.5]};
 const HEX=/^#[0-9a-f]{6}$/i;
 function clean(o){const s={};o=o||{};
   for(const[k,[d,a,b]]of Object.entries(SPEC)){const v=o[k];
@@ -186,7 +187,8 @@ if(DRAFT)try{const d=JSON.parse(localStorage.getItem('yc-site-draft'));if(d){S=c
 function look(){const b=S.textSize,k=S.fluidScale,x=r=>`calc(var(--fs)*${+r.toFixed(4)})`,
     fs=k>1?`clamp(${b/16}rem,${+((b-b*(k-1)/3)/16).toFixed(4)}rem + ${+(b*(k-1)/10.8).toFixed(4)}vw,${+(b*k/16).toFixed(4)}rem)`:b+'px';
   [['--bg',S.background],['--text',S.text],['--muted',S.muted],['--link',S.link],['--lines',S.lines],['--fs',fs],['--fw',S.textWeight],
-   ['--lh',S.lineSpacing],['--L',x(S.lineSpacing)],['--q',x(S.lineSpacing/4)],['--pg',x(S.paraGap*S.lineSpacing)],['--eg',x(S.entryGap*S.lineSpacing)],['--slh',S.smallLeading],['--sg',x(S.sectionGap*S.lineSpacing)],
+   ['--lh',S.lineSpacing],['--L',x(S.lineSpacing)],['--q',x(S.lineSpacing/4)],['--slh',S.smallLeading],
+   ['--g0',x(S.gapInside*S.lineSpacing)],['--g1',x(S.gapEntries*S.lineSpacing)],['--g2',x(S.gapHeading*S.lineSpacing)],['--g3',x(S.gapLists*S.lineSpacing)],['--g4',x(S.gapSections*S.lineSpacing)],
    ['--cg',x(S.columnGap*S.lineSpacing)],['--top',x(S.topSpace*S.lineSpacing)],['--sm',x(S.smallSize/b)],['--meas',x(S.measure)],['--sw',x(S.sideEm)],
    ['--ppw',x(S.sideEm*S.photoScale)],['--ns',x(S.nameSize/b)],['--ts',x(S.titleSize/b)],['--tw',S.titleWeight],['--h2s',x(S.headingSize/b)],
    ['--absfs',S.absSize==='small'?'var(--sm)':'var(--fs)'],['--abslh',S.absLeading],['--absc',S.absColour==='muted'?'var(--muted)':'var(--text)'],['--absw',{full:'none',match:S.measure+'em','90':'36em','75':'30em','65':'26em','440':'29.2em'}[S.absWidth]],
@@ -249,7 +251,7 @@ const DEMO_MD=`
 ### Example paper: Land, Credit, and Rural Recovery
 with A. Coauthor and B. Coauthor
 Revise and Resubmit, Journal of Economic History
-[Draft](#) [SSRN](#) [Slides](#)
+[Paper](#) [SSRN](#) [Slides](#)
 > This example appears only in previews, so the abstract can be tried. A typical abstract states the question, the setting and the data, the method, and the main finding with its size, in about 150 words. Click Abstract to open and close it; a pop-up or a window also closes with a click outside or the Escape key.`;
 // the text of a page; the example paper joins the first page after Home (or Home when it is the only page)
 const textOf=(f,own)=>(PGO&&PGO[f]!==undefined?PGO[f]:own!==undefined?own:PG[f]||'')+(DEMO&&f===fileOf((SI.menu[1]||SI.menu[0])[1])?DEMO_MD:'');
@@ -317,14 +319,14 @@ function contactIcon(a){const u=a.getAttribute('href')||'',t=a.textContent,
       '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
   return`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`}
 
-// quiet text area: the line boxes of all text plus quietMargin gaps stay at quietInside; the network returns over quietFade gaps
+// quiet text area: the line boxes of all text plus quietMargin lines stay at quietInside; the network returns over quietFade lines
 const sm=f=>f<=0?0:f>=1?1:f*f*f*(f*(6*f-15)+10),rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));   // one fade curve for every line, dot, force and quiet zone
 let VW=1,VH=1,N=0,cv,ctx,P=[],TR=[],last=0,NC=[9,105,218];
 function textRects(){TR=[];const rg=document.createRange();
   document.querySelectorAll('.name,nav a,h1,.text>p,.text section>p,.text h2,.text h3,.paper>h3,.paper>.meta,.paper>.btns,.paper.open>.abs,.ab-lines .abs,.ab-always .abs,footer,.side .nm,.side p,.sidenav a').forEach(el=>{rg.selectNodeContents(el);for(const r of rg.getClientRects())if(r.width&&r.height)TR.push(r)})}
 function calmAt(x,y){if(!TR.length)return 1;let d=1e12;
   for(const r of TR){const dx=Math.max(r.left-x,0,x-r.right),dy=Math.max(r.top-y,0,y-r.bottom),dd=dx*dx+dy*dy;if(dd<d){d=dd;if(!d)break}}
-  const g=S.paraGap*fsPx()*S.lineSpacing,s=(Math.sqrt(d)-S.quietMargin*g)/(S.quietFade*g);return S.quietInside+(1-S.quietInside)*sm(s)}
+  const g=fsPx()*S.lineSpacing,s=(Math.sqrt(d)-S.quietMargin*g)/(S.quietFade*g);return S.quietInside+(1-S.quietInside)*sm(s)}
 
 // background network. Each dot fades in, lives a random lifeMin to lifeMax seconds, fades out, and a new one fades in elsewhere.
 // Dots cruise at a set speed in their own direction; each pair within gravityRange pulls along a softened inverse square, which

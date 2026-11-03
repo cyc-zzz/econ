@@ -1,14 +1,17 @@
 /* Yicheng Chen website: shared style for every page.
    Every size and gap comes from settings.js through site.js, as a few tokens:
      type   --fs body, --sm small (details, menu, contacts, buttons), --h2s sub-heading, --ts heading, --ns name
-     space  --L one line (body size x line spacing) and its parts: --q a quarter line, --pg paragraph gap, --sg section gap,
-            --cg column gap, --top space above the page
+     space  --L one line (body size x line spacing), --q a quarter line, --cg column gap, --top space above the page, and the five
+            gaps --g0 inside an entry, --g1 between entries, --g2 heading to what follows, --g3 between lists, --g4 between sections;
+            --m0 to --m4 are the same gaps as margins (see "rhythm" below)
      width  --meas text column, --sw profile column, --ppw photo in the profile column
    The values below are only used for the first moment of loading. */
 *{box-sizing:border-box}
 :root{--bg:#ffffff;--text:#1f2328;--muted:#59636e;--link:#0969da;--lines:#d1d9e0;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;--hfont:var(--font);--sfont:var(--font);
-  --fs:16px;--sm:14px;--fw:400;--lh:1.6;--L:25.6px;--q:6.4px;--pg:19.2px;--sg:64px;--cg:76.8px;--top:64px;
+  --fs:16px;--sm:14px;--fw:400;--lh:1.6;--L:25.6px;--q:6.4px;--cg:76.8px;--top:64px;
+  --g0:12.8px;--g1:32px;--g2:19.2px;--g3:44.8px;--g4:64px;--lead:calc(var(--L)*.6);
+  --m0:calc(var(--g0) - var(--lead));--m1:calc(var(--g1) - var(--lead));--m2:calc(var(--g2) - var(--lead));--m3:calc(var(--g3) - var(--lead));--m4:calc(var(--g4) - var(--lead));
   --ns:20px;--ts:44px;--tw:400;--h2s:20px;--hw:600;--hc:var(--text);--maxw:900px;--pw:300px;--sw:208px;--ppw:135px;--meas:544px;--pr:4px}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0}
@@ -59,34 +62,36 @@ nav a:hover,nav a.on{color:var(--text)}
 .band-none .banner{padding-bottom:12px}
 
 /* page */
-.wrap{flex:1 0 auto;width:100%;max-width:var(--maxw);margin:0 auto;padding:var(--top) 20px var(--sg)}
+.wrap{flex:1 0 auto;width:100%;max-width:var(--maxw);margin:0 auto;padding:var(--top) 20px var(--g4)}
 .pf .wrap,.pf footer,.pf .banner{animation:pagein .5s ease-out both}
 @keyframes pagein{from{opacity:0;transform:translateY(4px)}}
 .leaving .wrap,.leaving footer,.leaving .banner{opacity:0;transition:opacity .18s}
-/* rhythm, all in parts of a line: a heading has a section gap above and half a line below; a sub-heading half a section gap above and
-   a quarter line below; paragraphs, link lists and papers are one paragraph gap apart */
-h1,.text h2.sec{color:var(--hc);font-family:var(--hfont);font-size:var(--ts);font-weight:var(--tw);line-height:1.2;letter-spacing:-.01em;margin:0 0 calc(var(--L)/2)}
+/* rhythm: five gaps, each the space you see from the baseline of one line to the top of the capitals of the next. Sections are --g4
+   apart, lists --g3, entries (paragraphs, papers) --g1; a heading sits --g2 above what follows; the lines of one entry are --g0 apart.
+   Text is trimmed to its capitals and its last baseline (text-box, below), so each margin --m is its gap; a browser that cannot trim
+   takes --lead (the space a line carries above its capitals and below its baseline) off every gap instead */
+h1,.text h2.sec{color:var(--hc);font-family:var(--hfont);font-size:var(--ts);font-weight:var(--tw);line-height:1.2;letter-spacing:-.01em;margin:0 0 var(--m2)}
 .tline h1{padding-bottom:.35em;border-bottom:1px solid var(--lines)}
 .ta-center h1{width:fit-content;max-width:100%;margin-left:auto;margin-right:auto;text-align:center}
 .text{min-width:0}
-.text p{margin:0 0 var(--pg)}
+.text p{margin:0 0 var(--m1)}
 .text>:last-child,.text section>:last-child{margin-bottom:0}
-.text h2,.text h3.sub{color:var(--hc);font-family:var(--hfont);font-size:var(--h2s);font-weight:var(--hw);line-height:1.3;margin:calc(var(--sg)/2) 0 var(--q)}
+.text h2,.text h3.sub{color:var(--hc);font-family:var(--hfont);font-size:var(--h2s);font-weight:var(--hw);line-height:1.3;margin:var(--m3) 0 var(--m2)}
 .text h2.sec{margin-top:0}
 .text h2:first-child,.text h2.sec+h3.sub{margin-top:0}
-.text section+section{margin-top:var(--sg)}
+.text section+section{margin-top:var(--m4)}
 section{scroll-margin-top:var(--L)}
-.links{display:flex;flex-direction:column;align-items:flex-start;gap:var(--pg)}
+.links{display:flex;flex-direction:column;align-items:flex-start;gap:var(--m1)}
 /* headings as small labels in capitals; sub-headings in italic */
 .hs-label h1,.hs-label .text h2.sec{font-family:var(--sfont);font-size:var(--sm);font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:var(--slh)}
 .hs-label .text h2:not(.sec),.hs-label .text h3.sub{font-size:var(--fs);font-style:italic;font-weight:400;color:var(--muted);line-height:var(--lh)}
 /* papers: bold title, authors and status in small grey, small buttons for the files and the abstract */
-.paper{margin:0 0 var(--eg,var(--pg))}
+.paper{margin:0 0 var(--m1)}
 .paper:last-child{margin-bottom:0}
 .paper h3{color:var(--text);font-family:var(--hfont);font-size:var(--fs);font-weight:600;line-height:var(--lh);margin:0}
-.paper .meta{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);line-height:var(--slh);margin:0}
-/* paper links: one style for every link of a paper (Draft, SSRN, a journal, slides) and for the Abstract switch, which shows + or − */
-.paper .btns{display:flex;flex-wrap:wrap;align-items:center;gap:var(--q);margin-top:var(--q)}
+.paper .meta{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);line-height:var(--slh);margin:var(--m0) 0 0}
+/* paper links: one style for every link of a paper (a journal, Paper, SSRN, slides) and for the Abstract switch, which shows + or − */
+.paper .btns{display:flex;flex-wrap:wrap;align-items:center;gap:var(--q);margin-top:var(--m0)}
 .paper .btns a,.paper .btns button{font:inherit;font-family:var(--sfont);font-size:calc(var(--sm)*.9);line-height:1.2;color:var(--link);background:none;border:0;padding:0;
   text-decoration:none;cursor:pointer;transition:color .2s,background-color .2s,border-color .2s}
 .paper .abs-btn::after{content:"+";display:inline-block;margin-left:.35em}
@@ -114,9 +119,9 @@ section{scroll-margin-top:var(--L)}
 /* abstract. expand: opens under a thin line; box: opens in a light box; lines: its first two lines show, faded, and open in full; popover: a
    small card under the switch, with a pointer; dialog: a window over the dimmed page; always: shown in small grey text. Every opening
    takes 0.2-0.25 s. */
-.paper .abs{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .25s ease,opacity .2s ease,margin-top .25s ease,visibility 0s linear .25s}
+.paper .abs{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .25s ease,opacity .2s ease,margin .25s ease,visibility 0s linear .25s}
 .paper .abs-in{overflow:hidden;min-height:0}
-.paper.open .abs{grid-template-rows:1fr;opacity:1;visibility:visible;margin-top:var(--q);transition-delay:0s}
+.paper.open .abs{grid-template-rows:1fr;opacity:1;visibility:visible;margin-top:var(--m0);transition-delay:0s}
 /* abstract text: body or small size, text or details grey, its own line spacing; under a thin rule, indented, or flush with the title;
    left-aligned or justified; its width in its own letters: as many characters a line as the text (match), about 90, 75 or 65, or the full column */
 .abs-tx{max-width:var(--absw,none);font-size:var(--absfs);line-height:var(--abslh);color:var(--absc)}
@@ -124,7 +129,7 @@ section{scroll-margin-top:var(--L)}
 .ae-indent.ab-expand .abs-tx{padding-left:calc(var(--q)*2)}
 .aa-justify .abs-tx{text-align:justify;-webkit-hyphens:auto;hyphens:auto}
 .ab-box .abs-tx{padding:calc(var(--q)*2) calc(var(--q)*3);border-radius:6px;background:color-mix(in srgb,var(--link) 5%,var(--bg))}
-.ab-lines .paper .abs,.ab-always .paper .abs{grid-template-rows:1fr;opacity:1;visibility:visible;margin-top:var(--q)}
+.ab-lines .paper .abs,.ab-always .paper .abs{grid-template-rows:1fr;opacity:1;visibility:visible;margin-top:var(--m0)}
 .ab-lines .abs-tx,.ab-always .abs-tx{color:var(--muted);font-size:var(--sm)}
 .ab-lines .paper .abs-in{max-height:calc(var(--absfs)*var(--abslh)*2);transition:max-height .3s ease;-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent)}
 .ab-lines .paper.open .abs-in{max-height:400em;-webkit-mask-image:none;mask-image:none}
@@ -143,7 +148,7 @@ section{scroll-margin-top:var(--L)}
 .absdlg::backdrop{background:rgba(20,20,35,.35)}
 @keyframes dlgin{from{opacity:0;transform:translateY(8px)}}
 .dlg-body{padding:calc(var(--L)*1.25) calc(var(--L)*1.5)}
-.dlg-abs{margin-top:var(--pg)}
+.dlg-abs{margin-top:var(--g0)}
 .dlg-x{position:absolute;top:6px;right:10px;padding:4px 8px;border:0;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer}
 .dlg-x:hover{color:var(--text)}
 .paper .btns :is(a,button):active{transform:translateY(1px)}
@@ -154,20 +159,30 @@ section{scroll-margin-top:var(--L)}
 .home{display:flex;align-items:flex-start;gap:var(--cg)}
 .ta-center .home{justify-content:center}
 .ta-center.home-side .home .text{max-width:460px}
-.home-top .home{flex-direction:column;gap:var(--pg)}
+.home-top .home{flex-direction:column;gap:var(--g1)}
 .home-top.ta-center .home{align-items:center}
 .home-top .home .text{max-width:var(--meas)}
 /* profile column and text column, centred together in the window; widths in multiples of the text size */
 .col-profile .wrap{max-width:none;display:grid;grid-template-columns:var(--sw) minmax(0,var(--meas));column-gap:var(--cg);justify-content:center;align-items:start;align-content:start}
 .side{position:sticky;top:var(--L)}
 .side .photo{width:var(--ppw);max-width:100%}
-.side .nm{color:var(--hc);font-family:var(--hfont);font-size:var(--ns);font-weight:var(--hw);line-height:1.2;margin:var(--pg) 0 var(--q)}
-.side p{margin:0 0 var(--pg);color:var(--muted);font-family:var(--sfont);font-size:var(--sm);line-height:var(--slh)}
+.side .nm{color:var(--hc);font-family:var(--hfont);font-size:var(--ns);font-weight:var(--hw);line-height:1.2;margin:var(--m1) 0 var(--m0)}
+.side p{margin:0 0 var(--m1);color:var(--muted);font-family:var(--sfont);font-size:var(--sm);line-height:var(--slh)}
 .side .links{gap:var(--q)}
 /* the first line of the text column lines up with the top of the photo */
 .col-profile .main>:first-child,.col-profile .main .text>:first-child,.col-profile .main .text>section:first-child>:first-child{text-box:trim-start cap alphabetic}
+/* text trimmed to the top of its capitals and its last baseline, so the margins above are the gaps you see. Unpadded paper links keep
+   their larger click area without taking space; an abstract that opens in place keeps room for its accents and descenders */
+@supports (text-box:trim-both cap alphabetic){
+  :root{--lead:0px}
+  h1,.text :is(h2,h3,p),.links a,.side .nm,.side p:not(.links),.paper .btns>*,:is(.ab-expand,.ab-always,.ab-box) .abs-tx,
+  .col-profile .main>:first-child:is(h1,h2,h3,p),.col-profile .main .text>section:first-child>:first-child{text-box:trim-both cap alphabetic}
+  :is(.pl-text,.pl-caps,.pl-brackets,.pl-underline) .paper .btns :is(a,button){margin-block:-.4em}
+  :is(.ab-expand,.ab-always) .abs-tx{padding-block:calc(var(--fs)*.4) calc(var(--fs)*.3)}
+  .ab-expand .paper.open .abs,.ab-always .paper .abs{margin-top:calc(var(--m0) - var(--fs)*.4);margin-bottom:calc(var(--fs)*-.3)}
+}
 /* without the top bar, the menu is a list in the profile column */
-.sidenav{display:flex;flex-direction:column;align-items:flex-start;gap:var(--q);margin-top:var(--pg)}
+.sidenav{display:flex;flex-direction:column;align-items:flex-start;gap:var(--q);margin-top:var(--m1)}
 .sidenav a{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);text-decoration:none}
 .sidenav a:hover,.sidenav a.on{color:var(--text)}
 .sidenav a.on{font-weight:600}
@@ -191,8 +206,8 @@ section{scroll-margin-top:var(--L)}
 .side .links a.ib:hover{border-color:var(--link);background:color-mix(in srgb,var(--link) 7%,transparent)}
 .lt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 footer:empty{display:none}
-footer{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);text-align:center;padding:var(--pg) 20px var(--sg)}
-.cjs-err{margin:0 0 var(--pg);padding:var(--q) calc(var(--q)*2);border-left:3px solid #cf222e;background:#fff5f5;color:#82071e;font-size:var(--sm)}
+footer{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);text-align:center;padding:var(--g1) 20px var(--g4)}
+.cjs-err{margin:0 0 var(--g1);padding:var(--q) calc(var(--q)*2);border-left:3px solid #cf222e;background:#fff5f5;color:#82071e;font-size:var(--sm)}
 .draftmark{position:fixed;left:12px;bottom:12px;z-index:9;padding:4px 10px;border-radius:4px;background:#1f2328;color:#fff;font:12px/1.5 system-ui,sans-serif;opacity:.85}
 
 /* phones: the same tokens, with a smaller top space */
@@ -203,19 +218,19 @@ footer{color:var(--muted);font-family:var(--sfont);font-size:var(--sm);text-alig
   .mn-pill nav{gap:2px}
   .mn-pill nav a{padding:4px 9px}
   .banner{padding:14px 16px 30px}
-  .wrap{padding:calc(var(--top)/2) 16px var(--sg)}
+  .wrap{padding:calc(var(--top)/2) 16px var(--g4)}
   h1,.text h2.sec{font-size:min(var(--ts),10vw)}
-  .home{flex-direction:column;gap:var(--pg)}
+  .home{flex-direction:column;gap:var(--g1)}
   .home .photo{width:min(var(--pw),62%)}
   .ta-center .home{align-items:center}
 }
 /* one column, set by site.js when the window cannot hold the profile column and about 65 characters of text beside it */
-.stack.col-profile .wrap{grid-template-columns:minmax(0,var(--meas));row-gap:var(--sg)}
-.stack .side{position:static;display:flex;gap:var(--pg);align-items:flex-start}
+.stack.col-profile .wrap{grid-template-columns:minmax(0,var(--meas));row-gap:var(--g4)}
+.stack .side{position:static;display:flex;gap:var(--g1);align-items:flex-start}
 .stack .side .photo{width:min(var(--ppw),96px)}
 .stack.side-center .side{flex-direction:column;align-items:center;gap:0}
 .stack.side-center .side .photo{width:min(var(--ppw),40vw)}
 .stack .side .nm{margin-top:0}
-.stack.side-center .side .nm{margin-top:var(--pg)}
+.stack.side-center .side .nm{margin-top:var(--m1)}
 @media (max-width:380px){nav{gap:14px}.name{font-size:calc(var(--ns)*.9)}.hd-centred .name,.hd-stacked .name{font-size:calc(var(--ns)*1.2)}}
 @media (prefers-reduced-motion:reduce){.pf .wrap,.pf footer,.pf .banner{animation:none}}

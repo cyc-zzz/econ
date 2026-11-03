@@ -40,12 +40,15 @@ const SETTINGS={
   textWeight:400,                 // 300 (light) to 500 (medium)
   lineSpacing:1.5,                // between lines, as a multiple of the text size; one line (text size x this) is the unit of every gap
   smallLeading:1.385,             // line spacing of the small text (position, authors, labels)
-  entryGap:0.75,                  // lines between papers
   fluidScale:1.1875,              // 1 = the same body size on every screen; above 1 = the body size grows with the window up to this times textSize (1440 px and wider)
   smallSize:13,                   // px, small text: position, contacts, author lines, buttons, menu
   smallFont:'same',               // font of the small text: same, or one of the fonts above
-  paraGap:0.75,                   // lines between paragraphs, papers and links
-  sectionGap:2,                   // lines between sections
+  // gaps, in lines; each is the space you see, from the bottom of the letters of one line to the top of the capitals of the next
+  gapInside:0.5,                  // inside one entry: title, authors, links and abstract; name and position
+  gapEntries:1.25,                // between entries: paragraphs and papers; photo, name and contacts
+  gapHeading:0.75,                // from a heading to what follows it
+  gapLists:1.75,                  // between lists, such as Working Papers and Work in Progress
+  gapSections:2.5,                // between sections, such as About and Research, and below the page
   columnGap:3,                    // lines between the profile column and the text
   topSpace:2.5,                   // lines above the page
   nameSize:25,                    // px, the name in the top bar
@@ -89,6 +92,6 @@ const SETTINGS={
   twinkle:0.25,                   // dots brighten and dim by up to this share (and swell a little), each at its own pace (0 = steady)
   clickDots:60,                   // most clicked dots on screen at once, fading ones included
   quietInside:0.05,               // network strength over text (0 = hidden)
-  quietMargin:1,                  // quiet margin around text, in gaps
-  quietFade:3,                    // the network comes back over this many gaps
+  quietMargin:0.75,               // quiet margin around text, in lines
+  quietFade:2.25,                 // the network comes back over this many lines
 };
