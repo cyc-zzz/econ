@@ -57,5 +57,5 @@ with Michael Briskin and Vasudha Ramakrishna
 
 ### Who Left, and What Did It Cost? The 2025 Federal Workforce Cuts
 
-### American Business, 1860–1925`
+### The Origins of the Racial Business Gap: Black Enterprise after Emancipation`
 };
