@@ -52,6 +52,7 @@ with Nhan Ngo
 
 ### The Costs of Service: Short- and Long-Term Effects of WWII Injuries
 with Michael Briskin and Vasudha Ramakrishna
+> Limited data on wartime experience makes it hard to estimate the costs of battle injuries on veteran outcomes. We construct a new dataset of U.S. Army hospital admissions during World War II linked to the census and death records, to estimate these costs. We find that battle-injured veterans were less likely to be employed or gain education after the war. Those with more severe injuries or mental illness saw greater labor market penalties. Battle-injured men were more likely to get married but to women who were less educated and less likely to work. They experienced a quarter of a year loss in life, and lived in poorer neighborhoods at death.
 
 ### Partisan Sorting in American Governments
 
